@@ -3,6 +3,7 @@ import os
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import *
 from code import toy_runner
+import numpy as np
 
 class MainForm(QWidget):
     def __init__(self, name = 'MainForm'):
@@ -14,30 +15,41 @@ class MainForm(QWidget):
         self.chosen_model = None
         self.has_result = None
         self.chosen_file = None
+        self.save_path = None
         self.runner = None
 
 
 
         ## btn
+        self.label1 = QLabel("Choose File:", self)
         self.btn_chooseFile = QPushButton("Choose File", self)  
 
-        self.label = QLabel("Select Model:", self)
+        self.label2 = QLabel("Select Model:", self)
         self.btn_selectModel = QComboBox(self)  
         self.btn_selectModel.addItems(['model1','model2','model3'])
 
-        self.btn_runModel = QPushButton("run Model", self) 
+        self.btn_runModel = QPushButton("Run Model", self) 
+
+        self.label3 = QLabel("Choose Save Path:", self)
+        self.btn_chooseDir = QPushButton("Choose Save Path", self)  
 
         self.btn_exportResult = QPushButton("Export Result", self)  
+
+        self.btn_runModel.setEnabled(False)
+        self.btn_exportResult.setEnabled(False)
 
 
 
 
 
         layout = QVBoxLayout()
+        layout.addWidget(self.label1)
         layout.addWidget(self.btn_chooseFile)
-        layout.addWidget(self.label)
+        layout.addWidget(self.label2)
         layout.addWidget(self.btn_selectModel)
         layout.addWidget(self.btn_runModel)
+        layout.addWidget(self.label3)
+        layout.addWidget(self.btn_chooseDir)
         layout.addWidget(self.btn_exportResult)
         self.setLayout(layout)
 
@@ -45,6 +57,7 @@ class MainForm(QWidget):
         self.btn_chooseFile.clicked.connect(self.slot_btn_chooseFile)
         self.btn_selectModel.activated[str].connect(self.slot_btn_selectModel)
         self.btn_runModel.clicked.connect(self.slot_btn_runModel)
+        self.btn_chooseDir.clicked.connect(self.slot_btn_chooseDir)
         self.btn_exportResult.clicked.connect(self.slot_btn_exportResult)
 
 
@@ -61,39 +74,47 @@ class MainForm(QWidget):
             print("\nCancel")
             return
         self.chosen_file = fileName_choose
-        print("\nThe file you uploaded:")
-        print(fileName_choose)
+        self.btn_chooseFile.setText(self.chosen_file)
+        if self.chosen_model:
+            self.btn_runModel.setEnabled(True)
+        return
 
 
     def slot_btn_selectModel(self, text):
         self.chosen_model = text
-        print("\nThe model you chose:")
-        print(text)
+        if self.chosen_file:
+            self.btn_runModel.setEnabled(True)
+        return
 
 
     def slot_btn_runModel(self):
-        if not self.chosen_file:
-            QMessageBox.warning(self,'warm0', 'Please choose a file first')
-            return
-        if not self.chosen_model:
-            QMessageBox.warning(self,'warm1', 'Please choose a model first')
-            return
-        else:
-            QMessageBox.information(self, 'info1', 'Running {}, please wait'.format(self.chosen_model))
-            model_type = int(self.chosen_model[-1])
-            self.runner = toy_runner(model_type, self.chosen_file)
-            self.runner.run()
-            self.has_result = self.runner.check_result()
-            return
+        QMessageBox.information(self, 'info1', 'Running {}, please wait'.format(self.chosen_model))
+        for i in range(10000):
+            a = np.random.rand(100000)
+        model_type = int(self.chosen_model[-1])
+        self.runner = toy_runner(model_type, self.chosen_file)
+        self.runner.run()
+        QMessageBox.information(self, 'info0', 'Running finished!'.format(self.chosen_model))
+        self.has_result = self.runner.check_result()
+        if self.save_path and self.has_result:
+            self.btn_exportResult.setEnabled(True)
+        return
 
     def slot_btn_exportResult(self):
-        if not self.has_result:
-            QMessageBox.warning(self,'warm2', 'Please run a model first')
-            return
-        else:
-            QMessageBox.information(self, 'info2', 'Results are saved in \n{}'.format(self.cwd))    
-            self.runner.save_result(self.cwd)
-            return
+        QMessageBox.information(self, 'info2', 'Results are saved in \n{}'.format(self.save_path))    
+        self.runner.save_result(self.save_path)
+        return
+
+    def slot_btn_chooseDir(self):
+        dir_choose = QFileDialog.getExistingDirectory(self,  
+                                    "Choose Path",  
+                                    self.cwd) 
+
+        self.save_path = dir_choose
+        self.btn_chooseDir.setText(dir_choose)
+        if self.save_path and self.has_result:
+            self.btn_exportResult.setEnabled(True)
+        return
 
 
 
