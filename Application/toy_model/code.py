@@ -1,5 +1,6 @@
 from load_helper import *
 import numpy as np
+import os
 
 
 def count(data):
@@ -11,9 +12,9 @@ def calculate_sum(data):
 
 
 class toy_runner():
-    def __init__(self, mode, data):
+    def __init__(self, mode, path):
         self.mode = mode
-        self.data = data
+        self.data = load_csv(path)
         self.result = None
         self.run_flag = False
 
@@ -35,7 +36,9 @@ class toy_runner():
     def get_result(self):
         return self.result
 
-    def save_result(self, path):
+    def save_result(self, dir):
+        path = os.path.join(dir, "toy_output.csv")
+        print(path)
         save_csv(self.result, path)
 
 
