@@ -1,15 +1,69 @@
 import sys
-import os
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import *
-from code import toy_runner
-import numpy as np
+from os import getcwd, system
+from os.path import join
+from run_makedata import run_makedata
+
+
+
+
+from pandas import read_csv, DataFrame
+
+
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QComboBox, QVBoxLayout, QFileDialog, QMessageBox
+
+
+def load_csv(path):
+    file = read_csv(path)
+    return file.values
+
+def save_csv(data, path):
+    DataFrame(data).to_csv(path)
+
+def count(data):
+    return data ** 2
+
+def calculate_sum(data):
+    return data ** 2
+
+
+class toy_runner():
+    def __init__(self, mode, path):
+        self.mode = mode
+        #self.data = load_csv(path)
+        self.path = path
+        self.result = None
+        self.run_flag = False
+
+        self.warm_message = None
+
+    def run(self):
+        if self.mode == 1:
+            result = run_makedata(self.path)
+            if result == 'Finished!':
+                self.run_flag = True
+            else:
+                self.run_flag = False
+                self.warm_message = file
+        elif self.mode == 2:
+            self.result = calculate_sum(load_csv(path))
+            self.run_flag = True
+
+    def check_result(self):
+        return self.run_flag
+
+    def get_result(self):
+        return self.result
+
+    def save_result(self, dir):
+        path = join(dir, "toy_output.csv")
+        save_csv(self.result, path)
+
 
 class MainForm(QWidget):
     def __init__(self, name = 'MainForm'):
         super(MainForm,self).__init__()
         self.setWindowTitle(name)
-        self.cwd = os.getcwd() 
+        self.cwd = getcwd() 
         self.resize(300, 100) 
 
         self.chosen_model = None
@@ -65,15 +119,7 @@ class MainForm(QWidget):
 
 
     def slot_btn_chooseFile(self):
-        fileName_choose, filetype = QFileDialog.getOpenFileName(self,  
-                                    "Choose File",  
-                                    self.cwd,
-                                    "All Files (*);;Text Files (*.txt)")  
-
-        if fileName_choose == "":
-            print("\nCancel")
-            return
-        self.chosen_file = fileName_choose
+        self.chosen_file = QFileDialog.getExistingDirectory(self, "getExistingDirectory", "./") 
         self.btn_chooseFile.setText(self.chosen_file)
         if self.chosen_model:
             self.btn_runModel.setEnabled(True)
@@ -89,11 +135,12 @@ class MainForm(QWidget):
 
     def slot_btn_runModel(self):
         QMessageBox.information(self, 'info1', 'Running {}, please wait'.format(self.chosen_model))
-        for i in range(10000):
-            a = np.random.rand(100000)
         model_type = int(self.chosen_model[-1])
         self.runner = toy_runner(model_type, self.chosen_file)
         self.runner.run()
+        if self.runner.warm_message:
+            QMessageBox.information(self, 'info3', 'No such a file in selected path: {}'.format(self.runner.warm_message))
+            return 
         QMessageBox.information(self, 'info0', 'Running finished!'.format(self.chosen_model))
         self.has_result = self.runner.check_result()
         if self.save_path and self.has_result:
@@ -101,8 +148,14 @@ class MainForm(QWidget):
         return
 
     def slot_btn_exportResult(self):
-        QMessageBox.information(self, 'info2', 'Results are saved in \n{}'.format(self.save_path))    
-        self.runner.save_result(self.save_path)
+        QMessageBox.information(self, 'info2', 'Results are saved in \n{}'.format(self.save_path))
+        if self.chosen_model == 'model1':
+            system('mv final.csv {}'.format(self.save_path))
+            system('mv predictions1.txt {}'.format(self.save_path))
+            system('mv predictions2.txt {}'.format(self.save_path))
+            system('mv predictions_heatmap1.asc {}'.format(self.save_path))
+        else:
+            self.runner.save_result(self.save_path)
         return
 
     def slot_btn_chooseDir(self):
@@ -120,12 +173,12 @@ class MainForm(QWidget):
 
 
     def closeEvent(self, event):  
-        reply = QtWidgets.QMessageBox.question(self,
+        reply = QMessageBox.question(self,
                                                'exit',
                                                "Do you want to exit?",
-                                               QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-                                               QtWidgets.QMessageBox.No)
-        if reply == QtWidgets.QMessageBox.Yes:
+                                               QMessageBox.Yes | QMessageBox.No,
+                                               QMessageBox.No)
+        if reply == QMessageBox.Yes:
             event.accept()
         else:
             event.ignore()
