@@ -831,10 +831,10 @@ class MainForm(QWidget):
     def slot_btn_exportResult(self):
         QMessageBox.information(self, 'info2', 'Results are saved in \n{}'.format(self.save_path))
         if self.chosen_model == 'model1':
-            system('mv final.csv {}'.format(self.save_path))
-            system('mv predictions1.txt {}'.format(self.save_path))
-            system('mv predictions2.txt {}'.format(self.save_path))
-            system('mv predictions_heatmap1.asc {}'.format(self.save_path))
+            system('move final.csv {}'.format(self.save_path))
+            system('move predictions1.txt {}'.format(self.save_path))
+            system('move predictions2.txt {}'.format(self.save_path))
+            system('move predictions_heatmap1.asc {}'.format(self.save_path))
         else:
             self.runner.save_result(self.save_path)
         return
