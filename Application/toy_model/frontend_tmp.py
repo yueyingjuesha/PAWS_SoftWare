@@ -888,7 +888,7 @@ def run_makedata(basepath):
                   'dist-toy_patrol', 'dist-toy_poaching', 'dist-toy_road',
                   'toy_altitude']
 
-  make_data_pandas.process_automate_data(files, column_names)
+  process_automate_data(files, column_names)
 
   ##########################################################################
 
@@ -918,20 +918,20 @@ def run_makedata(basepath):
       df_allnegative, df_slct_positive, df_slct_negative, \
       df_slct_unlabeled, \
       PositiveData, NegativeData, UnknownData = \
-      make_data_pandas.preprocessing_fn1(
+      preprocessing_fn1(
           fn1, patrol, poaching, selected_features)
 
   df_alldata2, df_validdata2, df_invaliddata2, df_slct_valid, NewAllData = \
-      make_data_pandas.preprocessing_fn2(fn2, selected_features)
+      preprocessing_fn2(fn2, selected_features)
 
   FoldNum = 4
   neg, NegativeData, NotFam, neg_label, Fam, dataset = \
-      make_data_pandas.build_dataset(
+      build_dataset(
           PositiveData, NegativeData, UnknownData, FoldNum=FoldNum)
 
   ##########################################################################
 
-  make_data_pandas.main_poaching_predict(qgis_file_in1, qgis_file_in2,
+  main_poaching_predict(qgis_file_in1, qgis_file_in2,
                                          df_allpositive,
                                          df_allnegative,
                                          df_unknowndata,
@@ -953,7 +953,7 @@ def run_makedata(basepath):
   # define the grid sizes (discretization levels) for each conservations ite
   # which should match from the automate_data.py script
   gridDim1 = 0.01
-  make_data_pandas.prep_qgis(qgis_file_in1, qgis_file_out1, gridDim1,
+  prep_qgis(qgis_file_in1, qgis_file_out1, gridDim1,
                              xcorner1, ycorner1, df_alldata)
   return 'Finished!'
 
