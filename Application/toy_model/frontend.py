@@ -1,62 +1,12 @@
 import sys
 from os import getcwd, system
 from os.path import join
-from run_makedata import run_makedata
-
-
-
-
-from pandas import read_csv, DataFrame
+from run_makedata import main_predict, main_prep_qgis
+import time
 
 
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QComboBox, QVBoxLayout, QFileDialog, QMessageBox
 
-
-def load_csv(path):
-    file = read_csv(path)
-    return file.values
-
-def save_csv(data, path):
-    DataFrame(data).to_csv(path)
-
-def count(data):
-    return data ** 2
-
-def calculate_sum(data):
-    return data ** 2
-
-
-class toy_runner():
-    def __init__(self, mode, path):
-        self.mode = mode
-        #self.data = load_csv(path)
-        self.path = path
-        self.result = None
-        self.run_flag = False
-
-        self.warm_message = None
-
-    def run(self):
-        if self.mode == 1:
-            result = run_makedata(self.path)
-            if result == 'Finished!':
-                self.run_flag = True
-            else:
-                self.run_flag = False
-                self.warm_message = file
-        elif self.mode == 2:
-            self.result = calculate_sum(load_csv(path))
-            self.run_flag = True
-
-    def check_result(self):
-        return self.run_flag
-
-    def get_result(self):
-        return self.result
-
-    def save_result(self, dir):
-        path = join(dir, "toy_output.csv")
-        save_csv(self.result, path)
 
 
 class MainForm(QWidget):
@@ -67,10 +17,10 @@ class MainForm(QWidget):
         self.resize(300, 100) 
 
         self.chosen_model = None
-        self.has_result = None
+        self.output = None
         self.chosen_file = None
         self.save_path = None
-        self.runner = None
+        self.has_result = False
 
 
 
@@ -80,7 +30,7 @@ class MainForm(QWidget):
 
         self.label2 = QLabel("Select Model:", self)
         self.btn_selectModel = QComboBox(self)  
-        self.btn_selectModel.addItems(['model1','model2','model3'])
+        self.btn_selectModel.addItems(['Choose Model', 'XGBOOST','DECISIO TREE','SVM'])
 
         self.btn_runModel = QPushButton("Run Model", self) 
 
@@ -121,41 +71,49 @@ class MainForm(QWidget):
     def slot_btn_chooseFile(self):
         self.chosen_file = QFileDialog.getExistingDirectory(self, "getExistingDirectory", "./") 
         self.btn_chooseFile.setText(self.chosen_file)
-        if self.chosen_model:
+        if self.chosen_model and self.chosen_file:
             self.btn_runModel.setEnabled(True)
+        else:
+            self.btn_runModel.setEnabled(False)
         return
 
 
     def slot_btn_selectModel(self, text):
-        self.chosen_model = text
-        if self.chosen_file:
+        mapping = {'Choose Model': None, 'XGBOOST':'xgb','DECISIO TREE':'dt','SVM':'svm'}
+        self.chosen_model = mapping[text]
+        if self.chosen_file and self.chosen_model:
             self.btn_runModel.setEnabled(True)
+        else:
+            self.btn_runModel.setEnabled(False)
         return
 
 
     def slot_btn_runModel(self):
         QMessageBox.information(self, 'info1', 'Running {}, please wait'.format(self.chosen_model))
-        model_type = int(self.chosen_model[-1])
-        self.runner = toy_runner(model_type, self.chosen_file)
-        self.runner.run()
-        if self.runner.warm_message:
-            QMessageBox.information(self, 'info3', 'No such a file in selected path: {}'.format(self.runner.warm_message))
-            return 
-        QMessageBox.information(self, 'info0', 'Running finished!'.format(self.chosen_model))
-        self.has_result = self.runner.check_result()
-        if self.save_path and self.has_result:
-            self.btn_exportResult.setEnabled(True)
+
+        self.btn_runModel.setEnabled(False)
+        self.btn_chooseFile.setEnabled(False)
+        self.btn_selectModel.setEnabled(False)
+
+        self.output = main_predict(self.chosen_file, self.chosen_model)
+
+        self.btn_runModel.setEnabled(True)
+        self.btn_chooseFile.setEnabled(True)
+        self.btn_selectModel.setEnabled(True)
+        if self.output[0] ==  False:
+            QMessageBox.information(self, 'info3', 'No such a file in selected path: {}.csv'.format(self.output[1]))
+        else:
+            self.has_result = True
+            if self.save_path:
+                self.btn_exportResult.setEnabled(True)
+            QMessageBox.information(self, 'info1', 'Running {} finished'.format(self.chosen_model))
         return
 
     def slot_btn_exportResult(self):
         QMessageBox.information(self, 'info2', 'Results are saved in \n{}'.format(self.save_path))
-        if self.chosen_model == 'model1':
-            system('mv final.csv {}'.format(self.save_path))
-            system('mv predictions1.txt {}'.format(self.save_path))
-            system('mv predictions2.txt {}'.format(self.save_path))
-            system('mv predictions_heatmap1.asc {}'.format(self.save_path))
-        else:
-            self.runner.save_result(self.save_path)
+        yea, mon, day, hou, minu, sec = list(time.localtime())[:6]
+        name = '/PAWS%d_%02d_%02d_%02d_%02d_%02d.asc'%(yea, mon, day, hou, minu, sec)
+        main_prep_qgis(self.output, self.save_path+name)
         return
 
     def slot_btn_chooseDir(self):

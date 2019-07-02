@@ -1,10 +1,8 @@
 import numpy as np
-import pdb
-import time
 
 
 class DataSet(object):
-  '''How to sample data is important.'''
+
   def __init__(self, positive, negative, fold_num):
     '''Prepare data. Several folds for pos and neg.'''
     self.positive = np.array(positive)
@@ -16,7 +14,7 @@ class DataSet(object):
     index = np.random.permutation(len(self.negative))
     self.negative = self.negative[index]
 
-    # Split k-fold
+
     self.data_folds = []
     self.label_folds = []
     fold_pos_num = int(len(self.positive) / int(fold_num))
@@ -122,6 +120,7 @@ class DataSet(object):
     train_label = np.concatenate(label_folds_copy, axis=0)
     return train_data, train_label
 
+  # used by make_data_pandas.py
   def get_train_all_up(self, num):
     data_folds_copy = list(self.data_folds)
     label_folds_copy = list(self.label_folds)
@@ -148,7 +147,6 @@ class DataSet(object):
     return train_data_up, train_label_up
 
   def get_train_neg_traintest_pos(self, fold_id, num):
-    #start = time.time()
     data_folds_copy = list(self.data_folds)
     label_folds_copy = list(self.label_folds)
 
@@ -182,11 +180,9 @@ class DataSet(object):
     index = np.random.permutation(len(train_label_up))
     train_data_up = train_data_up[index]
     train_label_up = train_label_up[index]
-    #print("duration" , time.time() - start)
     return train_data_up, train_label_up, test_data, test_label
 
   def get_train_neg_traintest_pos_smote(self, fold_id, num):
-    #start = time.time()
     data_folds_copy = list(self.data_folds)
     label_folds_copy = list(self.label_folds)
 
@@ -219,7 +215,7 @@ class DataSet(object):
 
     train_data_pos = np.array(train_data_pos)
     train_label_pos = np.array(train_label_pos)
-    # pdb.set_trace()
+
     idx_sort = np.argsort(np.sum(np.square(
         np.expand_dims(train_data_pos, 2) - np.tile(train_data_pos, (train_data_pos.shape[0], 1)).reshape(train_data_pos.shape + (train_data_pos.shape[0],))), axis=1), axis=1)
     for j, (data, label) in enumerate(zip(train_data_pos, train_label_pos)):
@@ -235,7 +231,6 @@ class DataSet(object):
     index = np.random.permutation(len(train_label_up))
     train_data_up = train_data_up[index]
     train_label_up = train_label_up[index]
-    #print("smote_duration" , time.time() - start)
     return train_data_up, train_label_up, test_data, test_label
 
   def get_train_all_up_aug(self, UdataPos, num):
@@ -244,21 +239,7 @@ class DataSet(object):
 
     train_data = np.concatenate(data_folds_copy, axis=0)
     train_label = np.concatenate(label_folds_copy, axis=0)
-    # UdataPos = []
-    # UdataPos1 = []
-    '''
-        for i,id in enumerate(UnknownDataID.reshape(-1)):
-            if (id in cluster_ids[8] or id in cluster_ids[7]) and (id in cluster_ids50[7] or id in cluster_ids50[6]):
-                UdataPos.append(UnknownData[i:i+1,:])
-        #        UdataPos.append(UnknownData[i:i+1,:])
-        '''
-    # UdataPos.append(UnknownData[index[:1000]])
-    # for i,id in enumerate(UnknownDataID.reshape(-1)):
-    #     if (id in cluster_ids[8] or id in cluster_ids[7] or id in cluster_ids[6]) and (id in cluster_ids50[7] or id in cluster_ids50[6]):
-    #         UdataPos.append(UnknownData[i:i+1,:])
-    # #        UdataPos.append(UnknownData[i:i+1,:])
-    # UdataPos=np.concatenate(UdataPos,0)
-    # print(len(UdataPos))
+
 
     train_data_up = []
     train_label_up = []
@@ -282,6 +263,7 @@ class DataSet(object):
 
     return train_data_up, train_label_up
 
+  # Used by dt method
   def get_train_neg_traintest_pos_aug(self, cluster_ids, cluster_ids50, index, UnknownData, UnknownDataID, fold_id, num):
     data_folds_copy = list(self.data_folds)
     label_folds_copy = list(self.label_folds)
@@ -293,17 +275,10 @@ class DataSet(object):
     train_label = np.concatenate(label_folds_copy, axis=0)
 
     UdataPos = []
-    '''
-        for i,id in enumerate(UnknownDataID.reshape(-1)):
-            if (id in cluster_ids[8] or id in cluster_ids[7]) and (id in cluster_ids50[7] or id in cluster_ids50[6]):
-                UdataPos.append(UnknownData[i:i+1,:])
-        #        UdataPos.append(UnknownData[i:i+1,:])
-        '''
-    # UdataPos.append(UnknownData[index[:1000]])
+
     for i, id in enumerate(UnknownDataID.reshape(-1)):
       if (id in cluster_ids[8] or id in cluster_ids[7] or id in cluster_ids[6]) and (id in cluster_ids50[7] or id in cluster_ids50[6]):
         UdataPos.append(UnknownData[i:i + 1, :])
-    #        UdataPos.append(UnknownData[i:i+1,:])
     UdataPos = np.concatenate(UdataPos, 0)
     print(UdataPos.shape)
     train_data_up = []
