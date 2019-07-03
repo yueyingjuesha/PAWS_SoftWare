@@ -30,7 +30,7 @@ class MainForm(QWidget):
 
         self.label2 = QLabel("Select Model:", self)
         self.btn_selectModel = QComboBox(self)  
-        self.btn_selectModel.addItems(['Choose Model', 'XGBOOST','DECISIO TREE','SVM'])
+        self.btn_selectModel.addItems(['Choose Model', 'XGBOOST','DECISION TREE','SVM'])
 
         self.btn_runModel = QPushButton("Run Model", self) 
 
@@ -79,7 +79,7 @@ class MainForm(QWidget):
 
 
     def slot_btn_selectModel(self, text):
-        mapping = {'Choose Model': None, 'XGBOOST':'xgb','DECISIO TREE':'dt','SVM':'svm'}
+        mapping = {'Choose Model': None, 'XGBOOST':'xgb','DECISION TREE':'dt','SVM':'svm'}
         self.chosen_model = mapping[text]
         if self.chosen_file and self.chosen_model:
             self.btn_runModel.setEnabled(True)
@@ -89,7 +89,8 @@ class MainForm(QWidget):
 
 
     def slot_btn_runModel(self):
-        QMessageBox.information(self, 'info1', 'Running {}, please wait'.format(self.chosen_model))
+        mapping = {'xgb':'XGBOOST','dt':'DECISION TREE','svm':'SVM':}
+        QMessageBox.information(self, 'info1', 'Running {}, please wait'.format(mapping[self.chosen_model]))
 
         self.btn_runModel.setEnabled(False)
         self.btn_chooseFile.setEnabled(False)
@@ -106,7 +107,7 @@ class MainForm(QWidget):
             self.has_result = True
             if self.save_path:
                 self.btn_exportResult.setEnabled(True)
-            QMessageBox.information(self, 'info1', 'Running {} finished'.format(self.chosen_model))
+            QMessageBox.information(self, 'info1', 'Running {} finished'.format(mapping[self.chosen_model]))
         return
 
     def slot_btn_exportResult(self):
