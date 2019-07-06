@@ -1,14 +1,19 @@
-import sys, time
+import sys, time, os
 import numpy as np
 from os import getcwd, system
 from os.path import join
+from shutil import rmtree
 from run_makedata import main_predict, main_prep_qgis
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
-
-
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QComboBox, QVBoxLayout, QFileDialog, QMessageBox, QTextBrowser
+
+
+from QgisIntegration.QgisStandalone import QgisStandalone
+from run_makedata import main_predict, main_prep_qgis
+
+
 
 
 
@@ -27,7 +32,7 @@ class MainForm(QWidget):
 
         self.textbox = QTextBrowser(self)
         self.textbox.resize(600, 200)
-        self.textbox.setText('这里是文档;这里是文档;这里是文档;\n这里是文档;这里是文档;这里是文档;\n这里是文档;这里是文档;这里是文档;\n这里是文档;这里是文档;这里是文档;')
+        self.textbox.setText('This is the documentation;This is the documentation;This is the documentation;\nThis is the documentation;This is the documentation;This is the documentation;\nThis is the documentation;')
 
 
         ## btn
@@ -78,6 +83,13 @@ class MainForm(QWidget):
     def slot_btn_chooseFile(self):
         self.chosen_file = QFileDialog.getExistingDirectory(self, "getExistingDirectory", "./") 
         self.btn_chooseFile.setText(self.chosen_file)
+        self.temp_dir = "C:\\Users\\yhhjack\\Documents\\GitHub\\PAWS_SoftWare\\temp\\" + str(int(time.time()))+'\\'
+        os.mkdir(self.temp_dir)
+        self.qgis = QgisStandalone(qgis_install_path="C:\\Program Files (x86)\\QGIS 2.18",
+                 qgis_input_shp_path=self.chosen_file,
+                 qgis_output_shapefile_path=self.temp_dir+'shapefile',
+                 qgis_output_csv_path=self.temp_dir+'csvfile'
+                 )
         if self.chosen_model and self.chosen_file:
             self.btn_runModel.setEnabled(True)
         else:
@@ -96,6 +108,8 @@ class MainForm(QWidget):
 
 
     def slot_btn_runModel(self):
+        self.qgis.run()
+        
         mapping = {'xgb':'XGBOOST','dt':'DECISION TREE','svm':'SVM'}
         QMessageBox.information(self, 'info1', 'Running {}, please wait'.format(mapping[self.chosen_model]))
 
@@ -103,8 +117,8 @@ class MainForm(QWidget):
         self.btn_chooseFile.setEnabled(False)
         self.btn_selectModel.setEnabled(False)
 
-        self.output = main_predict(self.chosen_file, self.chosen_model)
-
+        self.output = main_predict(self.temp_dir+'csvfile', self.chosen_model)
+        rmtree(self.temp_dir)
         self.btn_runModel.setEnabled(True)
         self.btn_chooseFile.setEnabled(True)
         self.btn_selectModel.setEnabled(True)
