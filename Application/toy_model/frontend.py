@@ -8,7 +8,7 @@ mpl.use('Agg')
 import matplotlib.pyplot as plt
 
 
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QComboBox, QVBoxLayout, QFileDialog, QMessageBox
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QComboBox, QVBoxLayout, QFileDialog, QMessageBox, QTextBrowser
 
 
 
@@ -17,7 +17,7 @@ class MainForm(QWidget):
         super(MainForm,self).__init__()
         self.setWindowTitle(name)
         self.cwd = getcwd() 
-        self.resize(300, 100) 
+        self.resize(600, 300) 
 
         self.chosen_model = None
         self.output = None
@@ -25,6 +25,9 @@ class MainForm(QWidget):
         self.save_path = None
         self.has_result = False
 
+        self.textbox = QTextBrowser(self)
+        self.textbox.resize(600, 200)
+        self.textbox.setText('这里是文档;这里是文档;这里是文档;\n这里是文档;这里是文档;这里是文档;\n这里是文档;这里是文档;这里是文档;\n这里是文档;这里是文档;这里是文档;')
 
 
         ## btn
@@ -50,6 +53,7 @@ class MainForm(QWidget):
 
 
         layout = QVBoxLayout()
+        layout.addWidget(self.textbox)
         layout.addWidget(self.label1)
         layout.addWidget(self.btn_chooseFile)
         layout.addWidget(self.label2)
