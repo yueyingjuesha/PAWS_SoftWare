@@ -1,8 +1,11 @@
-import sys
+import sys, time
+import numpy as np
 from os import getcwd, system
 from os.path import join
 from run_makedata import main_predict, main_prep_qgis
-import time
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt
 
 
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QComboBox, QVBoxLayout, QFileDialog, QMessageBox
@@ -115,6 +118,9 @@ class MainForm(QWidget):
         yea, mon, day, hou, minu, sec = list(time.localtime())[:6]
         name = '/PAWS%d_%02d_%02d_%02d_%02d_%02d.asc'%(yea, mon, day, hou, minu, sec)
         main_prep_qgis(self.output, self.save_path+name)
+        pic = np.loadtxt(self.save_path+name, skiprows=6)
+        plt.imshow(pic)
+        plt.savefig(self.save_path+name.replace('asc','png'))
         return
 
     def slot_btn_chooseDir(self):
