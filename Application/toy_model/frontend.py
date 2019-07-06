@@ -89,7 +89,7 @@ class MainForm(QWidget):
 
 
     def slot_btn_runModel(self):
-        mapping = {'xgb':'XGBOOST','dt':'DECISION TREE','svm':'SVM':}
+        mapping = {'xgb':'XGBOOST','dt':'DECISION TREE','svm':'SVM'}
         QMessageBox.information(self, 'info1', 'Running {}, please wait'.format(mapping[self.chosen_model]))
 
         self.btn_runModel.setEnabled(False)
