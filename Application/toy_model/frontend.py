@@ -1,11 +1,19 @@
-import sys
+import sys, time, os
+import numpy as np
 from os import getcwd, system
 from os.path import join
+from shutil import rmtree
 from run_makedata import main_predict, main_prep_qgis
-import time
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QComboBox, QVBoxLayout, QFileDialog, QMessageBox, QTextBrowser
 
 
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QComboBox, QVBoxLayout, QFileDialog, QMessageBox
+from QgisIntegration.QgisStandalone import QgisStandalone
+from run_makedata import main_predict, main_prep_qgis
+
+
 
 
 
@@ -14,7 +22,7 @@ class MainForm(QWidget):
         super(MainForm,self).__init__()
         self.setWindowTitle(name)
         self.cwd = getcwd() 
-        self.resize(300, 100) 
+        self.resize(600, 300) 
 
         self.chosen_model = None
         self.output = None
@@ -22,6 +30,9 @@ class MainForm(QWidget):
         self.save_path = None
         self.has_result = False
 
+        self.textbox = QTextBrowser(self)
+        self.textbox.resize(600, 200)
+        self.textbox.setText('This is the documentation;This is the documentation;This is the documentation;\nThis is the documentation;This is the documentation;This is the documentation;\nThis is the documentation;')
 
 
         ## btn
@@ -47,6 +58,7 @@ class MainForm(QWidget):
 
 
         layout = QVBoxLayout()
+        layout.addWidget(self.textbox)
         layout.addWidget(self.label1)
         layout.addWidget(self.btn_chooseFile)
         layout.addWidget(self.label2)
@@ -71,6 +83,13 @@ class MainForm(QWidget):
     def slot_btn_chooseFile(self):
         self.chosen_file = QFileDialog.getExistingDirectory(self, "getExistingDirectory", "./") 
         self.btn_chooseFile.setText(self.chosen_file)
+        self.temp_dir = "C:\\Users\\yhhjack\\Documents\\GitHub\\PAWS_SoftWare\\temp\\" + str(int(time.time()))+'\\'
+        os.mkdir(self.temp_dir)
+        self.qgis = QgisStandalone(qgis_install_path="C:\\Program Files (x86)\\QGIS 2.18",
+                 qgis_input_shp_path=self.chosen_file,
+                 qgis_output_shapefile_path=self.temp_dir+'shapefile',
+                 qgis_output_csv_path=self.temp_dir+'csvfile'
+                 )
         if self.chosen_model and self.chosen_file:
             self.btn_runModel.setEnabled(True)
         else:
@@ -89,15 +108,17 @@ class MainForm(QWidget):
 
 
     def slot_btn_runModel(self):
-        mapping = {'xgb':'XGBOOST','dt':'DECISION TREE','svm':'SVM':}
+        self.qgis.run()
+        
+        mapping = {'xgb':'XGBOOST','dt':'DECISION TREE','svm':'SVM'}
         QMessageBox.information(self, 'info1', 'Running {}, please wait'.format(mapping[self.chosen_model]))
 
         self.btn_runModel.setEnabled(False)
         self.btn_chooseFile.setEnabled(False)
         self.btn_selectModel.setEnabled(False)
 
-        self.output = main_predict(self.chosen_file, self.chosen_model)
-
+        self.output = main_predict(self.temp_dir+'csvfile', self.chosen_model)
+        rmtree(self.temp_dir)
         self.btn_runModel.setEnabled(True)
         self.btn_chooseFile.setEnabled(True)
         self.btn_selectModel.setEnabled(True)
@@ -115,6 +136,9 @@ class MainForm(QWidget):
         yea, mon, day, hou, minu, sec = list(time.localtime())[:6]
         name = '/PAWS%d_%02d_%02d_%02d_%02d_%02d.asc'%(yea, mon, day, hou, minu, sec)
         main_prep_qgis(self.output, self.save_path+name)
+        pic = np.loadtxt(self.save_path+name, skiprows=6)
+        plt.imshow(pic)
+        plt.savefig(self.save_path+name.replace('asc','png'))
         return
 
     def slot_btn_chooseDir(self):
